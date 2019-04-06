@@ -222,3 +222,25 @@ class Loader {
         this.curr.startUpdating(cb)
     }
 }
+
+class Renderer {
+
+    loader : Loader = new Loader()
+    animator : Animator = new Animator()
+
+    render(context : CanvasRenderingContext2D) {
+        this.loader.draw(context)
+    }
+
+    handleTap(cb : Function) {
+        this.loader.startUpdating(() => {
+            this.animator.start(() => {
+                cb()
+                this.loader.update(() => {
+                    this.animator.stop()
+                    cb()
+                })
+            })
+        })
+    }
+}
