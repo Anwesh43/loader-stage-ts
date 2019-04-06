@@ -2,12 +2,14 @@ const w : number = window.innerWidth
 const h : number = window.innerHeight
 const scGap : number = 0.05
 const scDiv : number = 0.51
-const innerFactor : number = 1.7
+const innerFactor : number = 1.1
 const sizeFactor : number = 2.9
 const foreColor : string = "#1565C0"
 const backColor : string = "#BDBDBD"
 const nodes : number = 5
 const arcs : number = 4
+const sweepDeg : number = 60
+const alphaColor : string = "#90CAF9"
 
 class ScaleUtil {
 
@@ -41,9 +43,10 @@ class DrawingUtil {
     }
 
     static drawDegArc(context : CanvasRenderingContext2D, deg : number, r : number) {
-        const maxDeg : number = 180 / (arcs + 1)
+        const maxDeg : number = 90 / (arcs + 1)
         context.save()
         context.rotate(deg)
+        context.beginPath()
         for (var j = 0; j <= maxDeg; j++) {
             const x : number = r * Math.cos(j * Math.PI / 180)
             const y : number = r * Math.sin(j * Math.PI / 180)
@@ -66,6 +69,7 @@ class DrawingUtil {
         const innerR : number = size / innerFactor
         const finalR = (r + innerR) / 2
         context.lineWidth = r - innerR
+        console.log(r - innerR)
         context.lineCap = 'round'
         context.strokeStyle = foreColor
         const gapDeg = (2 * Math.PI) / arcs
@@ -74,7 +78,7 @@ class DrawingUtil {
         DrawingUtil.drawLoadingArc(context, finalR)
         var deg = 0
         for (var j = 0; j < arcs; j++) {
-            context.strokeStyle = backColor
+            context.strokeStyle = alphaColor
             deg += gapDeg * ScaleUtil.divideScale(sc2, j, arcs)
             context.save()
             DrawingUtil.drawDegArc(context, deg, finalR)
@@ -125,10 +129,12 @@ class State {
 
     update(cb : Function) {
         this.scale += ScaleUtil.updateValue(this.scale, this.dir, 1, arcs)
+        console.log(this.scale)
         if (Math.abs(this.scale - this.prevScale) > 1) {
             this.scale = this.prevScale + this.dir
             this.dir = 0
             this.prevScale = this.scale
+            cb()
         }
     }
 
@@ -178,8 +184,8 @@ class LoaderNode {
 
     draw(context : CanvasRenderingContext2D) {
         DrawingUtil.drawLoaderNode(context, this.i, this.state.scale)
-        if (this.next) {
-            this.next.draw(context)
+        if (this.prev) {
+            this.prev.draw(context)
         }
     }
 
@@ -206,12 +212,11 @@ class LoaderNode {
 
 class Loader {
 
-    root : LoaderNode = new LoaderNode(0)
-    curr : LoaderNode = this.root
+    curr : LoaderNode = new LoaderNode(0)
     dir : number = 1
 
     draw(context : CanvasRenderingContext2D) {
-        this.root.draw(context)
+        this.curr.draw(context)
     }
 
     update(cb : Function) {
