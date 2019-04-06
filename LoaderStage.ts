@@ -74,6 +74,7 @@ class DrawingUtil {
         DrawingUtil.drawLoadingArc(context, finalR)
         var deg = 0
         for (var j = 0; j < arcs; j++) {
+            context.strokeStyle = backColor
             deg += gapDeg * ScaleUtil.divideScale(sc2, j, arcs)
             context.save()
             DrawingUtil.drawDegArc(context, deg, finalR)
@@ -86,6 +87,7 @@ class DrawingUtil {
 class LoaderStage {
     canvas : HTMLCanvasElement = document.createElement('canvas')
     context : CanvasRenderingContext2D
+    renderer : Renderer = new Renderer()
 
     initCanvas() {
         this.canvas.width = w
@@ -96,13 +98,16 @@ class LoaderStage {
 
     handleTap() {
         this.canvas.onmousedown = () => {
-
+            this.renderer.handleTap(() => {
+                this.render()
+            })
         }
     }
 
     render() {
         this.context.fillStyle = backColor
         this.context.fillRect(0, 0, w, h)
+        this.renderer.render(this.context)
     }
 
     static init() {
