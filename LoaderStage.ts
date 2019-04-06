@@ -2,12 +2,12 @@ const w : number = window.innerWidth
 const h : number = window.innerHeight
 const scGap : number = 0.05
 const scDiv : number = 0.51
-const strokeFactor : number = 90
+const innerFactor : number = 1.7
 const sizeFactor : number = 2.9
 const foreColor : string = "#1565C0"
 const backColor : string = "#BDBDBD"
 const nodes : number = 5
-const lines : number = 4
+const arcs : number = 4
 
 class ScaleUtil {
 
@@ -29,7 +29,57 @@ class ScaleUtil {
     }
 
     static updateValue(scale : number, dir : number, a : number, b : number) : number {
-        return ScaleUtil.mirrorValue(scale, a, b) * dir * scGap 
+        return ScaleUtil.mirrorValue(scale, a, b) * dir * scGap
+    }
+}
+
+class DrawingUtil {
+    static drawLoadingArc(context : CanvasRenderingContext2D, r : number) {
+        context.beginPath()
+        context.arc(0, 0, r, 0, 2 * Math.PI)
+        context.stroke()
+    }
+
+    static drawDegArc(context : CanvasRenderingContext2D, deg : number, r : number) {
+        const maxDeg : number = 180 / (arcs + 1)
+        context.save()
+        context.rotate(deg)
+        for (var j = 0; j <= maxDeg; j++) {
+            const x : number = r * Math.cos(j * Math.PI / 180)
+            const y : number = r * Math.sin(j * Math.PI / 180)
+            if (j == 0) {
+                context.moveTo(x, y)
+            } else {
+                context.lineTo(x, y)
+            }
+        }
+        context.stroke()
+        context.restore()
+    }
+
+    static drawLoaderNode(context : CanvasRenderingContext2D, i : number, scale : number) {
+        const sc1 : number = ScaleUtil.divideScale(scale, 0, 2)
+        const sc2 : number = ScaleUtil.divideScale(scale, 1, 2)
+        const gap : number = w / (nodes + 2)
+        const size : number = gap / sizeFactor
+        const r : number = size
+        const innerR : number = size / innerFactor
+        const finalR = (r + innerR) / 2
+        context.lineWidth = r - innerR
+        context.lineCap = 'round'
+        context.strokeStyle = foreColor
+        const gapDeg = (2 * Math.PI) / arcs
+        context.save()
+        context.translate(r + gap * i + gap * sc1, h / 2)
+        DrawingUtil.drawLoadingArc(context, finalR)
+        var deg = 0
+        for (var j = 0; j < arcs; j++) {
+            deg += gapDeg * ScaleUtil.divideScale(sc2, j, arcs)
+            context.save()
+            DrawingUtil.drawDegArc(context, deg, finalR)
+            context.restore()
+        }
+        context.restore()
     }
 }
 
